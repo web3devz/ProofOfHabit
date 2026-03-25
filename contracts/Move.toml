@@ -1,0 +1,11 @@
+[package]
+name = "ProofOfHabit"
+version = "0.0.1"
+upgrade_policy = "compatible"
+
+[addresses]
+proof_of_habit = "0x0"
+
+[dependencies]
+MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "external-crates/move-stdlib", rev = "testnet" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "testnet" }
