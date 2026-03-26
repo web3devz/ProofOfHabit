@@ -1,52 +1,79 @@
 module proof_of_habit::habit {
-    use std::vector;
+    use std::string::{Self, String};
+    use one::event;
+    use one::table::{Self, Table};
 
-    use sui::event;
-    use sui::object::{Self, UID};
-    use sui::tx_context::{Self, TxContext};
-    use sui::transfer;
-
+    /// Each user owns their HabitLog
     public struct HabitLog has key, store {
-        id: UID,
+        id: object::UID,
         owner: address,
-        entries: vector<Entry>,
+        entries: Table<u64, HabitEntry>,
+        next_id: u64,
+        streak: u64,
+        last_epoch: u64,
     }
 
-    public struct Entry has drop, store {
-        habit_name: vector<u8>,
-        note: vector<u8>,
-        timestamp_epoch: u64,
+    public struct HabitEntry has store, drop {
+        habit_name: String,
+        note: String,
+        epoch: u64,
     }
 
-    public struct HabitEvent has copy, drop {
+    public struct HabitLogged has copy, drop {
         owner: address,
-        habit_name: vector<u8>,
-        timestamp_epoch: u64,
+        habit_name: String,
+        entry_id: u64,
+        streak: u64,
+        epoch: u64,
     }
 
-    fun init(ctx: &mut TxContext) {
-        let sender = tx_context::sender(ctx);
+    const E_NOT_OWNER: u64 = 0;
+
+    public fun create_log(ctx: &mut TxContext) {
         let log = HabitLog {
             id: object::new(ctx),
-            owner: sender,
-            entries: vector::empty(),
+            owner: ctx.sender(),
+            entries: table::new(ctx),
+            next_id: 0,
+            streak: 0,
+            last_epoch: 0,
         };
-        transfer::transfer(log, sender);
+        transfer::transfer(log, ctx.sender());
     }
 
-    public entry fun log(
+    public fun log_habit(
         log: &mut HabitLog,
-        habit_name: vector<u8>,
-        note: vector<u8>,
-        ctx: &TxContext,
+        raw_habit: vector<u8>,
+        raw_note: vector<u8>,
+        ctx: &mut TxContext,
     ) {
-        assert!(log.owner == tx_context::sender(ctx), 0);
-        let entry = Entry {
-            habit_name: habit_name.clone(),
-            note,
-            timestamp_epoch: tx_context::epoch(ctx),
+        assert!(log.owner == ctx.sender(), E_NOT_OWNER);
+        let habit_name = string::utf8(raw_habit);
+        let note = string::utf8(raw_note);
+        let epoch = ctx.epoch();
+        let id = log.next_id;
+
+        // Update streak: consecutive epochs = streak++, else reset to 1
+        if (epoch == log.last_epoch + 1) {
+            log.streak = log.streak + 1;
+        } else if (epoch > log.last_epoch) {
+            log.streak = 1;
         };
-        vector::push_back(&mut log.entries, entry);
-        event::emit(HabitEvent { owner: log.owner, habit_name, timestamp_epoch: tx_context::epoch(ctx) });
+        log.last_epoch = epoch;
+
+        table::add(&mut log.entries, id, HabitEntry { habit_name, note, epoch });
+        log.next_id = id + 1;
+
+        event::emit(HabitLogged {
+            owner: log.owner,
+            habit_name: string::utf8(raw_habit),
+            entry_id: id,
+            streak: log.streak,
+            epoch,
+        });
     }
+
+    public fun owner(l: &HabitLog): address { l.owner }
+    public fun streak(l: &HabitLog): u64 { l.streak }
+    public fun total_logs(l: &HabitLog): u64 { l.next_id }
 }
