@@ -11,7 +11,7 @@ A decentralized habit tracking system built on **OneChain**. Daily activities be
 | Package ID | `0x2ebf14250c015c05a0c8f6abb67d933039062e955c2591c58b08e33bdb3aa623` |
 | Deploy Transaction | `2eFmKtezTXxY8wzjFtqYUTwmaS8g2Y9MhyxecEiP7bYo` |
 
-- [View Package](https://onescan.cc/testnet/objectDetails?address=0x2ebf14250c015c05a0c8f6abb67d933039062e955c2591c58b08e33bdb3aa623)
+- [View Package](https://onescan.cc/testnet/packageDetail?packageId=0x2ebf14250c015c05a0c8f6abb67d933039062e955c2591c58b08e33bdb3aa623)
 - [View Deploy Tx](https://onescan.cc/testnet/transactionBlocksDetail?digest=2eFmKtezTXxY8wzjFtqYUTwmaS8g2Y9MhyxecEiP7bYo)
 
 ---
