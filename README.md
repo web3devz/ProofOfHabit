@@ -1,4 +1,4 @@
-# ProofOfHabit
+# ProofOfHabit 🔥
 
 A decentralized habit tracking system built on **OneChain**. Daily activities become verifiable on-chain records — immutable proof of consistency that cannot be manipulated. Tracks streaks and can be extended with NFT rewards or token incentives.
 
@@ -13,6 +13,17 @@ A decentralized habit tracking system built on **OneChain**. Daily activities be
 
 - [View Package](https://onescan.cc/testnet/packageDetail?packageId=0x2ebf14250c015c05a0c8f6abb67d933039062e955c2591c58b08e33bdb3aa623)
 - [View Deploy Tx](https://onescan.cc/testnet/transactionBlocksDetail?digest=2eFmKtezTXxY8wzjFtqYUTwmaS8g2Y9MhyxecEiP7bYo)
+
+---
+
+## Features
+
+- Create a personal on-chain habit log (one per wallet)
+- Log habits with name and optional notes
+- Automatic streak tracking (consecutive epoch detection)
+- Habit frequency bar chart showing top 5 habits
+- Full activity log fetched via dynamic fields
+- **AI Habit Coach** — click "🤖 AI Coach" to get GPT-4o-mini personalized coaching: habit summary, top habit insight, streak tip, and motivational message
 
 ---
 
@@ -39,6 +50,7 @@ cd frontend && npm install && npm run dev
 Set in `frontend/.env`:
 ```env
 VITE_PACKAGE_ID=<package_id>
+VITE_OPENAI_KEY=<openai_api_key>
 ```
 
 ## License
