@@ -1,5 +1,7 @@
-import { useCurrentAccount, useSuiClientQuery } from '@mysten/dapp-kit'
-import { PACKAGE_ID } from '../config/network'
+import { useState } from 'react'
+import { useCurrentAccount, useSuiClientQuery, useSignAndExecuteTransaction } from '@mysten/dapp-kit'
+import { Transaction } from '@mysten/sui/transactions'
+import { PACKAGE_ID, txUrl } from '../config/network'
 
 interface LogFields {
   owner: string
@@ -9,23 +11,57 @@ interface LogFields {
 
 export default function MyHabits() {
   const account = useCurrentAccount()
-  const { data, isPending, error } = useSuiClientQuery('getOwnedObjects', {
+  const { mutate: signAndExecute, isPending } = useSignAndExecuteTransaction()
+  const [txDigest, setTxDigest] = useState('')
+  const [error, setError] = useState('')
+
+  const { data, isPending: isLoading, refetch } = useSuiClientQuery('getOwnedObjects', {
     owner: account?.address ?? '',
     filter: { StructType: `${PACKAGE_ID}::habit::HabitLog` },
     options: { showContent: true },
   })
 
-  if (isPending) return <div className="status-box">Loading your habits...</div>
-  if (error) return <div className="status-box error">Error: {error.message}</div>
+  const createLog = () => {
+    setError('')
+    const tx = new Transaction()
+    tx.moveCall({ target: `${PACKAGE_ID}::habit::create_log`, arguments: [] })
+    signAndExecute(
+      { transaction: tx },
+      {
+        onSuccess: (r) => { setTxDigest(r.digest); refetch() },
+        onError: (e) => setError(e.message),
+      }
+    )
+  }
+
+  if (isLoading) return <div className="status-box">Loading your habits...</div>
 
   const logs = data?.data ?? []
 
   if (logs.length === 0) {
     return (
-      <div className="empty-state">
-        <div className="empty-icon">🔥</div>
-        <h3>No habit log found</h3>
-        <p>Create your first habit log to start tracking.</p>
+      <div className="card">
+        <div className="card-header">
+          <h2>My Habit Log</h2>
+          <p className="card-desc">You don't have a habit log yet. Create one to start tracking.</p>
+        </div>
+
+        <div className="empty-state" style={{ padding: '2rem 0' }}>
+          <div className="empty-icon">🔥</div>
+          <h3>No habit log found</h3>
+          <p style={{ marginBottom: '1.5rem' }}>Create your personal on-chain habit log to start building streaks.</p>
+          <button className="btn-primary" onClick={createLog} disabled={isPending}>
+            {isPending ? 'Creating...' : '+ Create Habit Log'}
+          </button>
+        </div>
+
+        {error && <p className="error" style={{ marginTop: '1rem' }}>⚠ {error}</p>}
+        {txDigest && (
+          <div className="tx-success" style={{ marginTop: '1rem' }}>
+            <span>✅ Habit log created</span>
+            <a href={txUrl(txDigest)} target="_blank" rel="noreferrer">View tx ↗</a>
+          </div>
+        )}
       </div>
     )
   }
